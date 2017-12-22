@@ -6,6 +6,7 @@ import pytest
 
 from riggerlib import recursive_update
 from textwrap import dedent
+from widgetastic.utils import partial_match
 
 from cfme import test_requirements
 from cfme.automate.explorer.domain import DomainCollection
@@ -73,7 +74,7 @@ def testing_instance(request, setup_provider, provider, provisioning, vm_name, t
     if not provider.one_of(AzureProvider):
         recursive_update(inst_args, {
             'properties': {
-                'instance_type': provisioning['instance_type'],
+                'instance_type': partial_match(provisioning['instance_type']),
                 'guest_keypair': provisioning['guest_keypair']},
             'environment': {
                 'availability_zone': None if auto else provisioning['availability_zone'],
