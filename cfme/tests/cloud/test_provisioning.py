@@ -35,7 +35,12 @@ pytestmark = [
 ]
 
 
-@pytest.yield_fixture(scope="function")
+@pytest.fixture()
+def vm_name():
+    return random_vm_name(context='prov')
+
+
+@pytest.fixture()
 def testing_instance(request, setup_provider, provider, provisioning, vm_name, tag):
     """ Fixture to prepare instance parameters for provisioning
     """
@@ -134,11 +139,6 @@ def testing_instance(request, setup_provider, provider, provisioning, vm_name, t
     except Exception as ex:
         logger.warning('Exception while deleting instance fixture, continuing: {}'
                        .format(ex.message))
-
-
-@pytest.fixture(scope="function")
-def vm_name(request):
-    return random_vm_name('prov')
 
 
 @pytest.fixture(scope='function')
@@ -597,6 +597,7 @@ def test_provision_with_additional_volume(request, testing_instance, provider, s
         test_flag: provision, volumes
     """
     instance, inst_args, image = testing_instance
+
     # Set up automate
     method = modified_request_class.methods.instantiate(name="openstack_CustomizeRequest")
     try:
@@ -628,7 +629,8 @@ def test_provision_with_additional_volume(request, testing_instance, provider, s
 
     instance.create(**inst_args)
 
-    prov_instance = provider.mgmt._find_instance_by_name(vm_name)
+    provider.refresh_relationship()
+    prov_instance = provider.mgmt._find_instance_by_name(instance.name)
     try:
         assert hasattr(prov_instance, 'os-extended-volumes:volumes_attached')
         volumes_attached = getattr(prov_instance, 'os-extended-volumes:volumes_attached')
