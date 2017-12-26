@@ -629,7 +629,6 @@ def test_provision_with_additional_volume(request, testing_instance, provider, s
 
     instance.create(**inst_args)
 
-    provider.refresh_relationship()
     prov_instance = provider.mgmt._find_instance_by_name(instance.name)
     try:
         assert hasattr(prov_instance, 'os-extended-volumes:volumes_attached')
