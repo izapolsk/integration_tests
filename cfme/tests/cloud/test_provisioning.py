@@ -16,6 +16,7 @@ from cfme.cloud.provider.azure import AzureProvider
 from cfme.cloud.provider.gce import GCEProvider
 from cfme.cloud.provider.ec2 import EC2Provider
 from cfme.cloud.provider.openstack import OpenStackProvider
+from cfme.utils import error
 from cfme.utils.conf import credentials
 from cfme.utils.rest import assert_response
 from cfme.utils.generators import random_vm_name
@@ -474,7 +475,9 @@ def original_request_class(appliance):
 
 @pytest.fixture(scope="module")
 def modified_request_class(request, domain, original_request_class):
-    original_request_class.copy_to(domain)
+    with error.handler('error: Error during \'Automate Class copy\''):
+        # methods of this class might have been copied by other fixture, so this error can occur
+        original_request_class.copy_to(domain)
     klass = domain\
         .namespaces.instantiate(name='Cloud')\
         .namespaces.instantiate(name='VM')\
@@ -586,8 +589,7 @@ def test_provision_with_boot_volume(request, testing_instance, provider, soft_as
 # Not collected for EC2 in generate_tests above
 @pytest.mark.uncollectif(lambda provider: not provider.one_of(OpenStackProvider))
 def test_provision_with_additional_volume(request, testing_instance, provider, small_template,
-                                          soft_assert, copy_domains, domain,
-                                          modified_request_class):
+                                          soft_assert, copy_domains, modified_request_class):
     """ Tests provisioning with setting specific image from AE and then also making it create and
     attach an additional 3G volume.
 
@@ -595,7 +597,6 @@ def test_provision_with_additional_volume(request, testing_instance, provider, s
         test_flag: provision, volumes
     """
     instance, inst_args, image = testing_instance
-
     # Set up automate
     method = modified_request_class.methods.instantiate(name="openstack_CustomizeRequest")
     try:
