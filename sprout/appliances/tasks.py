@@ -267,6 +267,11 @@ def poke_trackerbot(self):
         template_name = template["template"]["name"]
         ga_released = template['template']['ga_released']
         date = parse_template(template_name).datestamp
+        try:
+            custom_data = template['template']['custom_data']
+        except IndexError:
+            custom_data = {}
+
         if not date:
             # Not a CFME/MIQ template, ignore it.
             continue
@@ -279,6 +284,10 @@ def poke_trackerbot(self):
             if original_template.ga_released != ga_released:
                 original_template.ga_released = ga_released
                 original_template.save()
+            if custom_data and original_template.custom_data != custom_data:
+                original_template.custom_data = custom_data
+                original_template.save()
+
         except ObjectDoesNotExist:
             if template_name in provider.templates:
                 date = parse_template(template_name).datestamp
@@ -297,7 +306,8 @@ def poke_trackerbot(self):
                     tpl = Template(
                         provider=provider, template_group=group, original_name=template_name,
                         name=template_name, preconfigured=False, date=date,
-                        version=template_version, ready=True, exists=True, usable=True)
+                        version=template_version, ready=True, exists=True, usable=True,
+                        custom_data=custom_data)
                     tpl.save()
                     original_template = tpl
                     self.logger.info("Created a new template #{}".format(tpl.id))
@@ -310,6 +320,9 @@ def poke_trackerbot(self):
                     preconfigured=True)
                 if preconfigured_template.ga_released != ga_released:
                     preconfigured_template.ga_released = ga_released
+                    preconfigured_template.save()
+                if custom_data and preconfigured_template.custom_data != custom_data:
+                    preconfigured_template.custom_data = custom_data
                     preconfigured_template.save()
             except ObjectDoesNotExist:
                 if template_name in provider.templates:

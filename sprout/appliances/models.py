@@ -21,6 +21,7 @@ from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils import timezone
+from json_field import JSONField
 
 from sprout import critical_section, redis
 from sprout.log import create_logger
@@ -537,6 +538,8 @@ class Template(MetadataMixin):
     ready = models.BooleanField(default=False, help_text="Template is ready-to-be-used")
     exists = models.BooleanField(default=True, help_text="Template exists in the provider.")
     usable = models.BooleanField(default=False, help_text="Template is marked as usable")
+    custom_data = JSONField(default={}, help_text="Some Templates require additional data "
+                                                  "for deployment")
 
     preconfigured = models.BooleanField(default=True, help_text="Is prepared for immediate use?")
     suggested_delete = models.BooleanField(
