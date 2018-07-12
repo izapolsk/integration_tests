@@ -325,6 +325,7 @@ class SSHClient(paramiko.SSHClient):
 
             session.exec_command(command)
             stdout = session.makefile()
+
             stderr = session.makefile_stderr()
 
             def write_output(line, file):

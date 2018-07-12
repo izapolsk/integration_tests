@@ -21,12 +21,19 @@ def test_configure_vmdb_last_start_time(appliance):
         if 'rh-postgresql' in item:
             logs_last_start_time = appliance.ssh_client.run_command(
                 "journalctl -u {}-postgresql.service  --boot=0 | sed '4!d'".format(item))
+        else:
+            pass
 
     ui_last_start_time = parser.parse(view.summary('Properties').get_text_of('Last Start Time'))
     # timedatectl is used here as we will get full timezone name, like 'US/Eastern',
     #  which is easier and safer(to omit UnknownTimeZoneError) to use later
-    tz = pytz.timezone(appliance.ssh_client.run_command("timedatectl | grep 'Time zone'")
-                       .output.strip().split(' ')[2])
+    if not appliance.is_pod:
+        timezone = appliance.ssh_client.run_command(
+            "timedatectl | grep 'Time zone'").output.strip().split(' ')[2]
+    else:
+        timezone = appliance.ssh_client.run_command(
+            "date +%Z").output.strip()
+    tz = pytz.timezone(timezone)
     ui_last_start_updated = ui_last_start_time.replace(
         tzinfo=ui_last_start_time.tzinfo).astimezone(tz)
     assert ui_last_start_updated.strftime('%Y-%m-%d %H:%M:%S %Z') in logs_last_start_time.output
