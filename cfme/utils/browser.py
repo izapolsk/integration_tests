@@ -143,15 +143,7 @@ class BrowserFactory(object):
 
     def processed_browser_args(self):
         self._add_missing_options()
-
-        if 'keep_alive' in self.browser_kwargs:
-            warnings.warn(
-                "forcing browser keep_alive to False due to selenium bugs\n"
-                "we are aware of the performance cost and hope to redeem",
-                category=RuntimeWarning,
-            )
-            return dict(self.browser_kwargs, keep_alive=False)
-        return self.browser_kwargs
+        return dict(self.browser_kwargs, keep_alive=True)
 
     def create(self, url_key):
         try:
