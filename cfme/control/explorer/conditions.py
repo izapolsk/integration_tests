@@ -202,16 +202,18 @@ class BaseCondition(BaseEntity, Updateable, Pretty):
         view = navigate_to(self, "Edit")
         try:
             view.fill(updates)
-            view.wait_displayed()
+        except StaleElementReferenceException:
+            logger.exception('Error on view.fill, ignoring and trying to hit save...')
+        try:
             view.save_button.click()
             view = self.create_view(ConditionDetailsView, override=updates, wait="10s")
             view.flash.assert_success_message(
-            'Condition "{}" was saved'.format(updates.get("description", self.description)))
-        except (TimedOutError, StaleElementReferenceException):
-            logger.exception('Updating the condition failed waiting for view, canceling update.')
+                'Condition "{}" was saved'.format(updates.get("description", self.description))
+            )
+        except TimedOutError:
+            logger.info('Updating this condition failed ... cancelling')
             view.cancel_button.click()
-            view = navigate_to(self, "Details")
-
+            navigate_to(self, "Details")
 
     def delete(self, cancel=False):
         """Delete this Condition in UI.
