@@ -181,6 +181,7 @@ class ExpressionEditor(View, Pretty):
         self.browser.click(self.REMOVE)
 
     def click_commit(self):
+        self.commit.wait_displayed()
         self.browser.click(self.COMMIT)
         self.UNDO.wait_displayed()
 
