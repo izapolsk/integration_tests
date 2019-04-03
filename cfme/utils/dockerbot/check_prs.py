@@ -4,7 +4,6 @@ import logging
 import traceback
 from datetime import datetime
 
-import dockerbot
 import fauxfactory
 import pika
 import requests
@@ -13,13 +12,12 @@ from slumber.exceptions import HttpClientError
 from cfme.utils.appliance import Appliance
 from cfme.utils.conf import docker as docker_conf
 from cfme.utils.log import setup_logger
+from cfme.utils.providers import get_crud
 from cfme.utils.trackerbot import api
 
 token = docker_conf.get('gh_token')
 owner = docker_conf.get('gh_owner')
 repo = docker_conf.get('gh_repo')
-
-tapi = api()
 
 CONT_LIMIT = docker_conf.get('workers')
 DEBUG = docker_conf.get('debug', False)
@@ -28,6 +26,12 @@ logger, _ = setup_logger(logging.getLogger('prt'))
 
 # Disable pika logs
 logging.getLogger("pika").propagate = False
+
+tapi = api()
+
+# get rid of this in favor when moving to prt slave pool configuration
+ocp_api = get_crud(docker_conf.get('openshift').get('provider')).mgmt
+namespace = docker_conf.get('openshift').get('namespace')
 
 
 def send_message_to_bot(msg):
@@ -154,8 +158,8 @@ def run_tasks():
     is then configured before being handed off to Dockerbot for the running of the PR.
     """
     cont_count = 0
-    for container in dockerbot.dc.containers():
-        if "py_test_base" in container['Image']:
+    for pod in ocp_api.list_pods(namespace=namespace):
+        if "prt-slave" in pod.metadata.name:
             cont_count += 1
     while cont_count < CONT_LIMIT:
         tasks = tapi.task().get(limit=1, result='pending')['objects']
@@ -183,6 +187,8 @@ def run_tasks():
                 tapi.task(task['tid']).patch(task_update)
 
                 # Create a dockerbot instance and run the PR test
+                body = ocp_api.kclient.V1Pod()
+                ocp_api.k_api.create_namespaced_pod(namespace=namespace, body=body)
                 dockerbot.DockerBot(dry_run=DEBUG,
                                     auto_gen_test=True,
                                     use_wharf=True,

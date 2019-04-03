@@ -5,7 +5,6 @@ import re
 import subprocess
 import sys
 
-import docker
 import fauxfactory
 import requests
 import yaml
