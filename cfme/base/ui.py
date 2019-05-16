@@ -544,11 +544,21 @@ class ServerView(ConfigurationView):
                 set(currently_selected)):
             return False
 
-        if not (re.match(prepare_server_name(("Server: {name} [{sid}]{current}".format(
-                name=self.context['object'].name,
-                sid=self.context['object'].sid,
-                current='' if self.context['object'] in self.context['object'].slave_servers else
-                ' (current)'))), currently_selected[-1])):
+        server_name = prepare_server_name(
+            (
+                "Server: {name} [{sid}]{current}".format(
+                    name=self.context["object"].name,
+                    sid=self.context["object"].sid,
+                    current=""
+                    if self.context["object"] in self.context["object"].slave_servers
+                    else " (current)",
+                )
+            )
+        )
+        server_name = (
+            re.escape(server_name) if type(server_name) == str else server_name
+        )
+        if not (re.match(server_name, currently_selected[-1])):
             return False
 
         return True
@@ -822,11 +832,20 @@ class ServerDiagnosticsView(ConfigurationView):
                 <= set(currently_selected)):
             return False
 
-        if not (re.match(prepare_server_name("Server: {name} [{sid}]{current}".format(
-                name=self.context['object'].name,
-                sid=self.context['object'].sid,
-                current='' if self.context['object'] in self.context['object'].slave_servers else
-                ' (current)')), currently_selected[-1])):
+        server_name = prepare_server_name(
+            "Server: {name} [{sid}]{current}".format(
+                name=self.context["object"].name,
+                sid=self.context["object"].sid,
+                current=""
+                if self.context["object"] in self.context["object"].slave_servers
+                else " (current)",
+            )
+        )
+        server_name = (
+            re.escape(server_name) if type(server_name) == str else server_name
+        )
+
+        if not (re.match(server_name, currently_selected[-1])):
             return False
 
         return True
