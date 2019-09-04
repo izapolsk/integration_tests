@@ -6,8 +6,6 @@ from cfme.cloud.provider.openstack import OpenStackProvider
 from cfme.infrastructure.provider.rhevm import RHEVMProvider
 from cfme.infrastructure.provider.virtualcenter import VMwareProvider
 from cfme.markers.env_markers.provider import ONE_PER_TYPE
-from cfme.utils.appliance import ViaREST
-from cfme.utils.appliance import ViaUI
 from cfme.utils.blockers import BZ
 from cfme.utils.generators import random_vm_name
 from cfme.utils.rest import assert_response
@@ -622,14 +620,42 @@ def test_vm_disk_reconfig_via_rest(appliance, full_vm):
             )
 
 
-@pytest.mark.manual
 @pytest.mark.tier(2)
-@pytest.mark.parametrize('context', [ViaREST, ViaUI])
 @pytest.mark.provider([VMwareProvider, RHEVMProvider, OpenStackProvider],
                       required_fields=['templates'], selector=ONE_PER_TYPE, override=True)
 @test_requirements.multi_region
 @test_requirements.reconfigure
-def test_vm_reconfigure_from_global_region(context):
+def test_vm_reconfigure_from_global_region(setup_multi_region_cluster,
+                                          multi_region_cluster,
+                                          activate_global_appliance,
+                                          setup_remote_provider,
+                                           full_vm):
+    """
+    reconfigure a VM via CA
+
+    Polarion:
+        assignee: izapolsk
+        casecomponent: Infra
+        initialEstimate: 1/3h
+        testSteps:
+            1. Have a VM created in the provider in the Remote region which is
+               subscribed to Global.
+            2. Reconfigure the VM using the Global appliance.
+        expectedResults:
+            1.
+            2.
+            3. VM reconfigured, no errors.
+    """
+    pass
+
+
+@pytest.mark.manual
+@pytest.mark.tier(2)
+@pytest.mark.provider([VMwareProvider, RHEVMProvider, OpenStackProvider],
+                      required_fields=['templates'], selector=ONE_PER_TYPE, override=True)
+@test_requirements.multi_region
+@test_requirements.reconfigure
+def test_vm_reconfigure_from_global_region_via_rest():
     """
     reconfigure a VM via CA
 
