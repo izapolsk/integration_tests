@@ -91,7 +91,7 @@ class ApplianceHolderPlugin(object):
     held_appliance = attr.ib()
     appliances = attr.ib(default=attr.Factory(list))
 
-    @pytest.fixture(scope="session")
+    @pytest.fixture(scope="function")
     def appliance(self):
         return self.held_appliance
 
